@@ -1,54 +1,45 @@
 package com.example.wheresmycar.ui.main_screen
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import android.os.Bundle
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapView
+
 
 @Composable
 fun Map(
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    val mapView = remember {
-        Configuration.getInstance().userAgentValue = context.packageName
-        MapView(context).apply {
-            setTileSource(TileSourceFactory.MAPNIK)
-            setMultiTouchControls(true)
-            controller.setZoom(15.0)
-            controller.setCenter(GeoPoint(52.2297, 21.0122)) // Warszawa
-        }
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                else -> {}
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            mapView.onDetach()
-        }
-    }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     AndroidView(
-        factory = { mapView },
-        modifier = modifier
+        modifier = modifier.fillMaxSize(),
+        factory = { ctx ->
+            MapView(ctx).apply {
+                onCreate(Bundle())
+
+                getMapAsync { mapLibreMap ->
+                    mapLibreMap.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
+                        val warsaw = LatLng(52.2297, 21.0122)
+
+                        val cameraPosition = CameraPosition.Builder()
+                            .target(warsaw)
+                            .zoom(16.0)
+                            .build()
+
+                        mapLibreMap.cameraPosition = cameraPosition
+                    }
+                }
+            }
+        }
     )
+
+    DisposableEffect(lifecycle) {
+        onDispose { }
+    }
 }
