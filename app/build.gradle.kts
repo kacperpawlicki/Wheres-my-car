@@ -55,7 +55,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.jetbrains.kotlinx.serialization.json)
     implementation(libs.android.sdk.v1150)
-
+    implementation(libs.android.plugin.annotation.v9)
+    implementation(libs.accompanist.permissions)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

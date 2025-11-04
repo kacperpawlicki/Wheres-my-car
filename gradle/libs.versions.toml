@@ -1,5 +1,7 @@
 [versions]
+accompanistPermissions = "0.37.3"
 agp = "8.12.3"
+androidPluginAnnotationV9 = "3.0.2"
 androidSdk = "11.5.0"
 kotlin = "2.2.0"
 coreKtx = "1.17.0"
@@ -14,6 +16,8 @@ nav3Core = "1.0.0-alpha07"
 nav3Lifecycle = "1.0.0-alpha04"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
+android-plugin-annotation-v9 = { module = "org.maplibre.gl:android-plugin-annotation-v9", version.ref = "androidPluginAnnotationV9" }
 android-sdk-v1150 = { module = "org.maplibre.gl:android-sdk", version.ref = "androidSdk" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 jetbrains-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
