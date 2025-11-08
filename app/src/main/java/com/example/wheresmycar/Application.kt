@@ -8,11 +8,11 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Inicjalizacja MapLibre
+        //MapLibre initialization
         MapLibre.getInstance(
             this,
-            null, // apiKey - null dla darmowych tile serverów
-            WellKnownTileServer.MapLibre // Możesz też użyć MapTiler, Maptiler, etc.
+            null,
+            WellKnownTileServer.MapLibre
         )
     }
 }

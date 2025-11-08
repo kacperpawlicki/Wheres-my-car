@@ -1,6 +1,7 @@
-package com.example.wheresmycar.ui.main_screen
+package com.example.wheresmycar.ui.main_screen.components
 
 import android.Manifest
+import android.R
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -32,7 +33,8 @@ import org.maplibre.geojson.Point
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Map(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMapReady: (org.maplibre.android.maps.MapLibreMap) -> Unit = {}
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val context = LocalContext.current
@@ -59,6 +61,8 @@ fun Map(
         factory = { mapView },
         update = { view ->
             view.getMapAsync { mapLibreMap ->
+                onMapReady(mapLibreMap)
+
                 mapLibreMap.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
 
                     if (locationPermissions.allPermissionsGranted) {
@@ -99,7 +103,7 @@ fun Map(
 
                     val markerBitmap = BitmapFactory.decodeResource(
                         context.resources,
-                        android.R.drawable.ic_menu_compass
+                        R.drawable.ic_menu_compass
                     )
 
                     if (markerBitmap != null) {
@@ -118,8 +122,12 @@ fun Map(
                         )
                     style.addLayer(symbolLayer)
                 }
+
+                mapLibreMap.uiSettings.isCompassEnabled = false
             }
         }
+
+
     )
 
     DisposableEffect(lifecycle) {
