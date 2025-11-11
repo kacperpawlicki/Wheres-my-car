@@ -1,6 +1,8 @@
 package com.example.wheresmycar.ui.main_screen
 
+import android.location.Location
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +49,8 @@ import org.maplibre.android.geometry.LatLng
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.Alignment
@@ -59,6 +64,7 @@ fun MainScreenUi(
     var mapLibreMap by remember { mutableStateOf<org.maplibre.android.maps.MapLibreMap?>(null) }
     var compassRotation by remember { mutableFloatStateOf(0f) }
     var northDirected by remember { mutableStateOf(true) }
+    var centeredOnLocation by remember { mutableStateOf(true) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
@@ -119,12 +125,40 @@ fun MainScreenUi(
                     onMapReady = { map ->
                         mapLibreMap = map
                         map.addOnCameraMoveListener {
-                            compassRotation = -map.cameraPosition.bearing.toFloat()
-                            northDirected = compassRotation == 0.toFloat()
+                            try {
+                                val userLocation = map.locationComponent.lastKnownLocation
+                                val cameraTarget = map.cameraPosition.target
+
+                                if (userLocation != null && cameraTarget != null) {
+                                    val results = FloatArray(1)
+                                    Location.distanceBetween(
+                                        userLocation.latitude, userLocation.longitude,
+                                        cameraTarget.latitude, cameraTarget.longitude,
+                                        results
+                                    )
+                                    val distance = results[0]
+                                    centeredOnLocation = distance < 5
+                                } else {
+                                    centeredOnLocation = false
+                                }
+
+                                compassRotation = -map.cameraPosition.bearing.toFloat()
+                                northDirected = compassRotation == 0f
+
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                centeredOnLocation = false
+                            }
                         }
+
                     }
                 )
 
+
+                val bottomPadding by animateDpAsState(
+                    targetValue = if (centeredOnLocation) 140.dp else 205.dp,
+                    animationSpec = tween(durationMillis = 400)
+                )
 
                 AnimatedVisibility(
                     visible = !northDirected,
@@ -137,7 +171,7 @@ fun MainScreenUi(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(16.dp)
-                        .padding(bottom = 205.dp)
+                        .padding(bottom = bottomPadding)
                 ) {
                     FloatingActionButton(
                         onClick = {
@@ -155,7 +189,8 @@ fun MainScreenUi(
                             }
                         },
                         containerColor = Color.White,
-                        contentColor = Color.Black
+                        contentColor = Color.Black,
+                        shape = CircleShape
                     ) {
                         Icon(
                             imageVector = Icons.Default.Explore,
@@ -169,38 +204,84 @@ fun MainScreenUi(
 
 
 
-
-                FloatingActionButton(
+                AnimatedVisibility(
+                    visible = !centeredOnLocation,
+                    enter = fadeIn(
+                        animationSpec = tween(200)
+                    ),
+                    exit = fadeOut(
+                        animationSpec = tween(200, 100)
+                    ),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(16.dp)
-                        .padding(bottom = 140.dp),
-                    onClick = {
-                        mapLibreMap?.let { map ->
-                            val locationComponent = map.locationComponent
-                            locationComponent.lastKnownLocation?.let { location ->
-                                val userLocation = LatLng(location.latitude, location.longitude)
-                                val cameraPosition = CameraPosition.Builder()
-                                    .target(userLocation)
-                                    .zoom(16.0)
-                                    .build()
+                        .padding(bottom = 140.dp)
+                ) {
+                    FloatingActionButton(
+                        onClick = {
+                            mapLibreMap?.let { map ->
+                                val locationComponent = map.locationComponent
+                                locationComponent.lastKnownLocation?.let { location ->
+                                    val userLocation = LatLng(location.latitude, location.longitude)
+                                    val cameraPosition = CameraPosition.Builder()
+                                        .target(userLocation)
+                                        .zoom(16.0)
+                                        .build()
 
-                                map.animateCamera(
-                                    CameraUpdateFactory
-                                        .newCameraPosition(cameraPosition),
-                                    1000
-                                )
+                                    map.animateCamera(
+                                        CameraUpdateFactory
+                                            .newCameraPosition(cameraPosition),
+                                        1000
+                                    )
+                                }
                             }
-                        }
+                        },
+                        containerColor = Color.White,
+                        contentColor = Color.Black,
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = "Focus camera on my location",
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
+                    }
+                }
+
+                FloatingActionButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .padding(top = 20.dp)
+                        .size(44.dp),
+                    onClick = {
+
                     },
                     containerColor = Color.White,
-                    contentColor = Color.Black
+                    contentColor = Color.Black,
+                    shape = CircleShape
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MyLocation,
-                        contentDescription = "Focus camera on my location",
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Go to settings",
                         modifier = Modifier
-                            .size(25.dp)
+                            .size(30.dp)
+                    )
+                }
+
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(16.dp)
+                        .padding(bottom = 140.dp),
+                    onClick = {
+
+                    }
+                ) {
+                    Text(
+                        text = "Zaparkuj!",
+                        fontSize = 25.sp
                     )
                 }
             }
