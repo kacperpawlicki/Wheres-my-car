@@ -108,7 +108,7 @@ fun MainScreenUi(
                         .padding(16.dp)
                         .navigationBarsPadding()
                 ) {
-                    Text("Moje samochody", fontWeight = FontWeight.Bold, fontSize = 30.sp)
+                    Text("My cars", fontWeight = FontWeight.Bold, fontSize = 30.sp)
                     Spacer(Modifier.height(16.dp))
 
                     repeat(10) {
@@ -280,7 +280,7 @@ fun MainScreenUi(
                     }
                 ) {
                     Text(
-                        text = "Zaparkuj!",
+                        text = "Park!",
                         fontSize = 25.sp
                     )
                 }
